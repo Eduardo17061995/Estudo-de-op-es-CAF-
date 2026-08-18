@@ -22,9 +22,18 @@ dinheiro custa **R$ 162/saca** contra uma margem comercial de **R$ 110/saca** �
 O collar (put comprada + call vendida) custa **R$ 23/saca**, 21% da margem, e é a única
 estrutura de opção que fecha a conta.
 
-**Leitura do estudo:** collar na razão de 70–80%, condicionado a haver liquidez real nas opções
-de ICF — que é fina na B3 e precisa ser confirmada com a mesa de agro da XP antes de qualquer
-promessa ao cliente.
+**3. Nenhuma put seca resolve o problema dele.** O negócio dele já empata com uma queda de 5,7%
+(ICF US$ 347,31), mas as puts baratas só se pagam depois de quedas de 12% a 15% — ele paga o
+seguro e leva o prejuízo. As que protegem a margem custam 176% a 207% dela.
+
+**Leitura do estudo:** **collar put 350 / call 385** — entra com crédito de R$ 10,32/saca,
+garante margem positiva de +R$ 24,32/saca no pior caso e preserva alta até R$ 206,32/saca.
+Condicionado a duas confirmações: liquidez real nas opções de ICF (fina na B3) e o skew de
+volatilidade da tela, já que o crédito é calculado sob hipótese de vol plana.
+
+**E antes de tudo:** girar o estoque em 1 mês em vez de 3 vale **R$ 164,64/saca** — mais que a
+margem inteira do vencimento longo, e 7x o custo do melhor collar. A escolha do vencimento pesa
+mais que a escolha da estrutura.
 
 ## Estrutura
 
@@ -33,10 +42,11 @@ ESTUDO_HEDGE_CAFE.md              o estudo completo
 saida/Estudo_Hedge_Cafe_ICF.xlsx  calculadora, 7 abas
 modelo/gerar_calculadora_cafe.py  gera a planilha do zero
 modelo/validar_modelo.py          valida a matemática do modelo
+modelo/analise_breakeven.py       qual strike vale a pena e a partir de quanto paga
 ```
 
 Abas da planilha: `Leia-me` · `Parametros` · `Dimensionamento` · `Cenarios` · `Opcoes` ·
-`Estruturas` · `Programa de hedge`
+`Estruturas` · `Programa de hedge` · `Breakeven opcoes`
 
 ## Rodar
 
@@ -44,6 +54,7 @@ Abas da planilha: `Leia-me` · `Parametros` · `Dimensionamento` · `Cenarios` �
 pip install openpyxl
 python modelo/gerar_calculadora_cafe.py   # regera a planilha
 python modelo/validar_modelo.py           # valida (todas as verificações passam)
+python modelo/analise_breakeven.py        # tabelas de breakeven de puts e collars
 ```
 
 ## Avisos

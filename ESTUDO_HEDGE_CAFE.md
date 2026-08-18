@@ -242,6 +242,114 @@ confirmar oferta firme.**
 
 ---
 
+## 5.2 Qual opção vale mais a pena, e a partir de quanto ela paga
+
+### O número que manda em tudo: o negócio dele já empata a –5,7%
+
+Antes de escolher strike, essa conta:
+
+```
+ICF que zera a margem = (custo de compra + carrego − basis de venda) ÷ câmbio
+                      = (1.846,00 − 40,00) ÷ 5,20
+                      = US$ 347,31/saca
+```
+
+**O ICF está em US$ 368,40. Uma queda de apenas 5,7% já zera o lucro dele.**
+É esse o intervalo do qual ele precisa se proteger — e é por isso que os strikes bem fora do
+dinheiro (a proteção "barata") não servem: eles só começam a pagar quando o prejuízo já está feito.
+
+### PUTs — o que cada strike entrega
+
+| Strike | % do F | Prêmio | % da margem | Paga abaixo de | Breakeven | Queda até o breakeven | **Piso de margem** |
+|---|---|---|---|---|---|---|---|
+| US$ 320 | 87% | R$ 44,57 | 41% | US$ 320 | US$ 311,43 | **–15,5%** | –R$ 186,57 |
+| US$ 330 | 90% | R$ 59,30 | 54% | US$ 330 | US$ 318,60 | –13,5% | –R$ 149,30 |
+| US$ 340 | 92% | R$ 76,93 | 70% | US$ 340 | US$ 325,21 | –11,7% | –R$ 114,93 |
+| US$ 350 | 95% | R$ 97,57 | 89% | US$ 350 | US$ 331,24 | –10,1% | –R$ 83,57 |
+| US$ 360 | 98% | R$ 121,24 | 111% | US$ 360 | US$ 336,69 | –8,6% | –R$ 55,24 |
+| US$ 368 | 100% | R$ 143,44 | 131% | US$ 368 | US$ 340,82 | –7,5% | –R$ 33,76 |
+| US$ 385 | 105% | R$ 193,28 | 176% | US$ 385 | US$ 347,83 | –5,6% | +R$ 2,72 |
+
+**O veredito é duro e vale ler com atenção:** **nenhuma put seca resolve o problema dele.**
+
+- As baratas (320–340) só começam a se pagar depois de quedas de 12% a 15% — mas o lucro dele
+  já morreu a 5,7%. **Ele paga o seguro e ainda leva o prejuízo.**
+- As que realmente protegem a margem (385+) custam **176% a 207% da margem**. Comprar é destruir
+  o lucro para proteger o lucro.
+- O único strike com **piso positivo** é o 385, e ele garante… **+R$ 2,72/saca**. Ou seja: ele
+  paga R$ 193/saca para garantir R$ 2,72/saca de lucro.
+
+**Put seca está fora.** Não é questão de escolher o strike certo — a estrutura não serve para
+uma margem de R$ 110/saca.
+
+### COLLARS — aqui a conta fecha
+
+| Put | Call | Custo líquido | % da margem | Breakeven | **PISO** | **TETO** | Veredito |
+|---|---|---|---|---|---|---|---|
+| **350** | **385** | **–R$ 10,32** (crédito) | **–9%** | US$ 351,98 | **+R$ 24,32** | R$ 206,32 | **Melhor relação** |
+| 350 | 395 | R$ 7,51 | 7% | US$ 348,56 | +R$ 6,49 | R$ 240,49 | Quase zero custo, teto maior |
+| 350 | 405 | R$ 22,89 | 21% | US$ 345,60 | –R$ 8,89 | R$ 277,11 | Mais upside, piso negativo |
+| 360 | 395 | R$ 31,18 | 28% | US$ 354,00 | **+R$ 34,82** | R$ 216,82 | **Melhor piso** |
+| 368 | 405 | R$ 68,76 | 63% | US$ 355,18 | **+R$ 40,92** | R$ 231,24 | Piso máximo, mas caro |
+
+**As duas respostas à tua pergunta:**
+
+**1. A mais vantajosa é o collar put 350 / call 385.** Ele **entra com crédito de R$ 10,32/saca**
+(a call vendida paga mais que a put custa), garante **margem positiva de +R$ 24,32/saca** no pior
+cenário possível, e ainda preserva alta até **R$ 206,32/saca**. É o clássico *zero-cost collar*,
+aqui até melhor que zero. Se o cliente quiser piso mais alto, o **360/395** sobe o piso para
++R$ 34,82/saca ao custo de R$ 31,18.
+
+**2. "A partir de quanto ele começa a ganhar" tem três respostas diferentes** — e a confusão
+entre elas é o que gera briga com cliente depois. Para o collar 350/385:
+
+| Pergunta | Resposta |
+|---|---|
+| A partir de quando a **put começa a pagar**? | ICF abaixo de **US$ 350** (–5,0%) |
+| A partir de quando a **estrutura se paga**? | ICF abaixo de **US$ 351,98** (–4,5%) — porque entrou com crédito, ela já está paga desde o dia zero |
+| Qual o **pior resultado possível** dele? | **+R$ 24,32/saca** de margem, aconteça o que acontecer |
+| A partir de quando ele **para de ganhar mais**? | ICF acima de **US$ 385** (+4,5%), onde a call limita em R$ 206,32/saca |
+
+**O que isso significa na prática:** sem hedge, uma queda de 35% leva a margem dele para
+**–R$ 560,81/saca**. Com o collar 350/385, o pior caso é **+R$ 24,32/saca**. Em 1.500 sacas,
+isso é **R$ 877 mil de prejuízo evitado** no cenário ruim — em troca de abrir mão do que
+estivesse acima de R$ 206/saca no cenário bom.
+
+### Ressalva séria: o crédito depende de uma hipótese que preciso que você confira
+
+O modelo usa **uma volatilidade única de 38% para todos os strikes** (vol plana). O mercado real
+tem **skew** — puts e calls fora do dinheiro negociam com vols diferentes. O crédito do collar
+350/385 aparece porque, com vol plana, a call 385 está mais perto do dinheiro (16,6 pontos)
+que a put 350 (18,4 pontos), então vale mais.
+
+**Se na tela a put estiver com vol maior que a call, o crédito virá custo.** No café costuma
+ocorrer o contrário (call com vol maior, por risco de quebra de safra), o que favoreceria ainda
+mais o crédito — **mas isso tem que ser conferido, não presumido.** Peça à mesa da XP a vol de
+cada strike, ou os prêmios de tela, e refaça a conta na aba `Breakeven opcoes`.
+**Não prometa "collar de custo zero" ao cliente antes disso.**
+
+---
+
+## 5.3 E antes de tudo isso: a escolha do vencimento vale mais que a da estrutura
+
+Este é o ponto que quase passou batido, e ele é maior que toda a discussão de opções:
+
+| Vencimento | ICF | Carrego | Custo base | **Margem** | Em 1.500 sacas |
+|---|---|---|---|---|---|
+| **Set/26 (curto)** | US$ 391,60 | 1 mês (R$ 22) | R$ 1.802,00 | **R$ 274,32/saca** | **R$ 411.480** |
+| Dez/26 (longo) | US$ 368,40 | 3 meses (R$ 66) | R$ 1.846,00 | R$ 109,68/saca | R$ 164.520 |
+| | | | **Diferença** | **R$ 164,64/saca** | **R$ 246.960** |
+
+**Girar o estoque em 1 mês em vez de 3 vale R$ 164,64/saca — mais que a margem inteira do
+vencimento longo, e 7x o custo do melhor collar.** Vem de dois efeitos somados: a curva
+invertida (Set paga US$ 23,20 mais que Dez) e dois meses menos de armazenagem.
+
+**Ordem de prioridade, então:** (1) encurtar o ciclo comercial, (2) escolher o vencimento certo,
+(3) só então escolher a estrutura de proteção. Otimizar o passo 3 antes dos passos 1 e 2 é
+arrumar os móveis de uma casa com o telhado furado.
+
+---
+
 ## 6. Os cinco riscos que o hedge NÃO elimina
 
 Esta seção é a que separa um estudo honesto de uma apresentação de venda.
@@ -388,18 +496,20 @@ Sugestão de política mínima, para assinar antes de operar:
 | `saida/Estudo_Hedge_Cafe_ICF.xlsx` | Calculadora com 7 abas. Preencha só as células azuis/amarelas. |
 | `modelo/gerar_calculadora_cafe.py` | Script que gera a planilha. Rode de novo para recriar do zero. |
 | `modelo/validar_modelo.py` | Validação independente da matemática do modelo. |
+| `modelo/analise_breakeven.py` | Análise de breakeven: qual strike vale a pena e a partir de quanto paga. |
 | `ESTUDO_HEDGE_CAFE.md` | Este documento. |
 
 Abas da planilha: `Leia-me` · `Parametros` · `Dimensionamento` · `Cenarios` · `Opcoes` ·
-`Estruturas` · `Programa de hedge`
+`Estruturas` · `Programa de hedge` · `Breakeven opcoes`
 
 ### Sobre a validação da planilha — leia antes de usar
 
 O modelo foi validado por um script independente (`modelo/validar_modelo.py`), que replica em
-Python a matemática de todas as 491 fórmulas e confere as identidades que precisam valer:
+Python a matemática de todas as 695 fórmulas e confere as identidades que precisam valer:
 paridade put-call do Black-76, prêmios acima do valor intrínseco, redução de risco do hedge
 igual à cobertura efetiva, ordenação dos payoffs das quatro estruturas, identidade do colchão
-de margem, e auditoria de que nenhuma fórmula aponta para célula vazia. **Todas as
+de margem, planicidade do piso da put e do piso/teto dos collars, breakeven da posição de
+opção, e auditoria de que nenhuma fórmula aponta para célula vazia. **Todas as
 verificações passam.**
 
 **Uma limitação a declarar:** não foi possível rodar o recálculo automático via LibreOffice

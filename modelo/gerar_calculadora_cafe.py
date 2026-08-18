@@ -861,6 +861,216 @@ g.merge_cells(f"B{rr}:J{rr}")
 g.row_dimensions[rr].height = 32
 
 
+# ================================================= 8. BREAKEVEN DAS OPCOES
+bk = wb.create_sheet("Breakeven opcoes")
+bk.sheet_view.showGridLines = False
+larguras(bk, {"A": 2, "B": 11, "C": 12, "D": 11, "E": 12, "F": 13, "G": 13,
+              "H": 13, "I": 13, "J": 13, "K": 13, "L": 13, "M": 34})
+
+escreve(bk, "B2", "Breakeven das opcoes - a partir de que preco a protecao paga", TITULO)
+escreve(bk, "B3", "Responde: qual strike vale mais a pena, e a partir de que ICF a estrutura "
+                  "comeca a pagar. Todas as opcoes calculadas para a razao de hedge de 100%, "
+                  "para comparar limpo.", ITAL)
+bk.row_dimensions[3].height = 28
+
+
+def b76(tipo, fcel, kcel, volcel, tcel, rcel):
+    """Monta a formula Black-76 em Excel para a celula de strike informada."""
+    st = f"({volcel}*SQRT({tcel}))"
+    d1 = f"((LN({fcel}/{kcel})+0.5*{volcel}^2*{tcel})/{st})"
+    d2 = f"({d1}-{st})"
+    desc = f"EXP(-{rcel}*{tcel})"
+    if tipo == "call":
+        return f"={desc}*({fcel}*NORMSDIST({d1})-{kcel}*NORMSDIST({d2}))"
+    return f"={desc}*({kcel}*NORMSDIST(-{d2})-{fcel}*NORMSDIST(-{d1}))"
+
+
+escreve(bk, "B5", "Referencias", SEC, fill=FILL_SEC)
+for col in "CDEFGHIJKLM":
+    escreve(bk, f"{col}5", "", fill=FILL_SEC)
+
+refs = [
+    ("B6", "ICF - futuro (US$/saca)", "D6", "=Parametros!C13", F_USD),
+    ("B7", "Volatilidade implicita", "D7", "=Parametros!C28", F_PCT),
+    ("B8", "Prazo (anos)", "D8", "=Parametros!C29", F_NUM2),
+    ("B9", "Juros (a.a.)", "D9", "=Parametros!C30", F_PCT2),
+    ("B10", "Cambio no vencimento", "D10", "=Parametros!C16", F_NUM2),
+    ("B11", "Custo de compra + carrego (R$/saca)", "D11",
+     "=Parametros!C8+Parametros!C10*Parametros!C9", F_BRL),
+    ("B12", "Basis de venda (R$/saca)", "D12", "=Parametros!C18", F_BRL),
+]
+for rot_cel, rot, val_cel, form, fmt in refs:
+    escreve(bk, rot_cel, rot, PRETO, alin="left")
+    bk.merge_cells(f"{rot_cel}:C{rot_cel[1:]}")
+    escreve(bk, val_cel, form, VERDE, fmt=fmt, borda=True)
+
+escreve(bk, "F6", "MARGEM COMERCIAL HOJE (R$/saca)", NEGRITO, alin="left")
+bk.merge_cells("F6:I6")
+escreve(bk, "J6", "=$D$6*$D$10+$D$12-$D$11", NEGRITO, fmt=F_BRL, borda=True, fill=FILL_OK)
+escreve(bk, "F7", "Preco de equilibrio do negocio (ICF que zera a margem)", NEGRITO, alin="left")
+bk.merge_cells("F7:I7")
+escreve(bk, "J7", "=($D$11-$D$12)/$D$10", NEGRITO, fmt=F_USD, borda=True, fill=FILL_OK)
+escreve(bk, "F8", "Queda que ja zera o lucro dele", NEGRITO, alin="left")
+bk.merge_cells("F8:I8")
+escreve(bk, "J8", "=IF($D$6=0,0,$J$7/$D$6-1)", NEGRITO, fmt=F_PCT, borda=True, fill=FILL_OK)
+escreve(bk, "K8", "<- este e o numero mais importante da aba: define de quanta queda "
+                  "ele precisa se proteger de verdade.", ITAL, alin="left")
+bk.merge_cells("K8:M8")
+bk.row_dimensions[8].height = 26
+
+# ------------------------------------------------------------- tabela PUTS
+escreve(bk, "B14", "A) PUTS - comprar seguro contra queda", SEC, fill=FILL_SEC)
+for col in "CDEFGHIJKLM":
+    escreve(bk, f"{col}14", "", fill=FILL_SEC)
+
+cabs_bk = [
+    "% do\nfuturo",
+    "Strike\n(US$)",
+    "Premio\n(US$)",
+    "Premio\n(R$/saca)",
+    "% da\nmargem",
+    "Paga a\npartir de\n(US$)",
+    "Breakeven\n(US$)",
+    "Queda ate o\nbreakeven",
+    "PISO de\nmargem\n(R$/saca)",
+    "Delta",
+    "Veredito",
+]
+cabecalho(bk, 15, cabs_bk, col_ini=2)
+bk.row_dimensions[15].height = 48
+
+pcts_put = [0.87, 0.90, 0.92, 0.95, 0.98, 1.00, 1.02, 1.05, 1.07]
+r0p = 16
+for i, pct in enumerate(pcts_put):
+    r = r0p + i
+    escreve(bk, f"B{r}", pct, AZUL, fmt=F_PCT, fill=FILL_INPUT, borda=True)
+    escreve(bk, f"C{r}", f"=ROUND($D$6*B{r}/5,0)*5", PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"D{r}", b76("put", "$D$6", f"C{r}", "$D$7", "$D$8", "$D$9"),
+            PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"E{r}", f"=D{r}*$D$10", PRETO, fmt=F_BRL, borda=True)
+    escreve(bk, f"F{r}", f"=IF($J$6<=0,\"\",E{r}/$J$6)", PRETO, fmt=F_PCT, borda=True)
+    escreve(bk, f"G{r}", f"=C{r}", PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"H{r}", f"=C{r}-D{r}", NEGRITO, fmt=F_USD, borda=True)
+    escreve(bk, f"I{r}", f"=IF($D$6=0,0,H{r}/$D$6-1)", NEGRITO, fmt=F_PCT, borda=True)
+    escreve(bk, f"J{r}", f"=C{r}*$D$10+$D$12-$D$11-E{r}", NEGRITO, fmt=F_BRL,
+            borda=True, fill=FILL_OK)
+    # delta da put sobre futuro: -e^(-rT) * N(-d1)
+    _st = "($D$7*SQRT($D$8))"
+    _d1 = f"((LN($D$6/C{r})+0.5*$D$7^2*$D$8)/{_st})"
+    escreve(bk, f"K{r}", f"=-EXP(-$D$9*$D$8)*NORMSDIST(-{_d1})",
+            PRETO, fmt=F_NUM2, borda=True)
+    escreve(bk, f"L{r}",
+            f'=IF(J{r}>0,"Piso POSITIVO - protege o lucro",'
+            f'IF(F{r}>1,"INVIAVEL - premio maior que a margem",'
+            f'IF(F{r}>0.5,"Caro - come mais de metade da margem",'
+            f'"Piso negativo, mas premio suportavel")))',
+            PRETO, borda=True, alin="left")
+    bk.merge_cells(f"L{r}:M{r}")
+
+rup = r0p + len(pcts_put) - 1
+escreve(bk, f"B{rup+2}", "Leitura: 'Paga a partir de' = onde a put comeca a ter valor de exercicio. "
+                         "'Breakeven' = onde ela ja cobriu o premio. "
+                         "'PISO de margem' negativo significa que a put limita o prejuizo, mas nao salva o lucro.",
+        ITAL, alin="left")
+bk.merge_cells(f"B{rup+2}:M{rup+2}")
+bk.row_dimensions[rup + 2].height = 28
+
+# ----------------------------------------------------------- tabela COLLARS
+r_col = rup + 4
+escreve(bk, f"B{r_col}", "B) COLLARS - put comprada financiada pela call vendida",
+        SEC, fill=FILL_SEC)
+for col in "CDEFGHIJKLM":
+    escreve(bk, f"{col}{r_col}", "", fill=FILL_SEC)
+r_col += 1
+
+cabs_col = [
+    "% put",
+    "Strike\nput (US$)",
+    "% call",
+    "Strike\ncall (US$)",
+    "Premio put\n(US$)",
+    "Premio call\n(US$)",
+    "Custo liq.\n(R$/saca)",
+    "% da\nmargem",
+    "Breakeven\n(US$)",
+    "PISO de\nmargem\n(R$/saca)",
+    "TETO de\nmargem\n(R$/saca)",
+    "Veredito",
+]
+cabecalho(bk, r_col, cabs_col, col_ini=2)
+bk.row_dimensions[r_col].height = 48
+
+combos = [(0.95, 1.05), (0.95, 1.07), (0.95, 1.10), (0.95, 1.14),
+          (0.98, 1.07), (0.98, 1.10), (0.98, 1.14),
+          (1.00, 1.10), (1.00, 1.14), (1.00, 1.19)]
+r0c = r_col + 1
+for i, (pp, pc) in enumerate(combos):
+    r = r0c + i
+    escreve(bk, f"B{r}", pp, AZUL, fmt=F_PCT, fill=FILL_INPUT, borda=True)
+    escreve(bk, f"C{r}", f"=ROUND($D$6*B{r}/5,0)*5", PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"D{r}", pc, AZUL, fmt=F_PCT, fill=FILL_INPUT, borda=True)
+    escreve(bk, f"E{r}", f"=ROUND($D$6*D{r}/5,0)*5", PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"F{r}", b76("put", "$D$6", f"C{r}", "$D$7", "$D$8", "$D$9"),
+            PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"G{r}", b76("call", "$D$6", f"E{r}", "$D$7", "$D$8", "$D$9"),
+            PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"H{r}", f"=(F{r}-G{r})*$D$10", NEGRITO, fmt=F_BRL, borda=True)
+    escreve(bk, f"I{r}", f"=IF($J$6<=0,\"\",H{r}/$J$6)", PRETO, fmt=F_PCT, borda=True)
+    escreve(bk, f"J{r}", f"=C{r}-(F{r}-G{r})", PRETO, fmt=F_USD, borda=True)
+    escreve(bk, f"K{r}", f"=C{r}*$D$10+$D$12-$D$11-H{r}", NEGRITO, fmt=F_BRL,
+            borda=True, fill=FILL_OK)
+    escreve(bk, f"L{r}", f"=E{r}*$D$10+$D$12-$D$11-H{r}", PRETO, fmt=F_BRL, borda=True)
+    escreve(bk, f"M{r}",
+            f'=IF(AND(K{r}>0,H{r}<=0),"OTIMO - piso positivo e entra com credito",'
+            f'IF(K{r}>0,"BOM - piso positivo (margem garantida)",'
+            f'IF(H{r}<=0,"Entra com credito, mas piso negativo",'
+            f'"Piso negativo - avaliar")))',
+            PRETO, borda=True, alin="left")
+
+ruc = r0c + len(combos) - 1
+rr = ruc + 2
+escreve(bk, f"B{rr}", "Melhor piso de margem entre os collars", NEGRITO, alin="left")
+bk.merge_cells(f"B{rr}:F{rr}")
+escreve(bk, f"G{rr}", f"=MAX(K{r0c}:K{ruc})", NEGRITO, fmt=F_BRL, borda=True, fill=FILL_OK)
+escreve(bk, f"H{rr}", "Strike da put desse collar", PRETO, alin="left")
+bk.merge_cells(f"H{rr}:I{rr}")
+escreve(bk, f"J{rr}", f"=INDEX(C{r0c}:C{ruc},MATCH(MAX(K{r0c}:K{ruc}),K{r0c}:K{ruc},0))",
+        NEGRITO, fmt=F_USD, borda=True)
+escreve(bk, f"K{rr}", "Strike da call", PRETO, alin="left")
+escreve(bk, f"L{rr}", f"=INDEX(E{r0c}:E{ruc},MATCH(MAX(K{r0c}:K{ruc}),K{r0c}:K{ruc},0))",
+        NEGRITO, fmt=F_USD, borda=True)
+rr += 1
+escreve(bk, f"B{rr}", "Collar mais barato (menor custo liquido)", NEGRITO, alin="left")
+bk.merge_cells(f"B{rr}:F{rr}")
+escreve(bk, f"G{rr}", f"=MIN(H{r0c}:H{ruc})", NEGRITO, fmt=F_BRL, borda=True, fill=FILL_OK)
+escreve(bk, f"H{rr}", "Negativo = entra com credito no caixa", ITAL, alin="left")
+bk.merge_cells(f"H{rr}:M{rr}")
+
+rr += 2
+escreve(bk, f"B{rr}", "RESSALVA IMPORTANTE SOBRE O MODELO", SEC, fill=FILL_SEC)
+for col in "CDEFGHIJKLM":
+    escreve(bk, f"{col}{rr}", "", fill=FILL_SEC)
+rr += 1
+ressalvas = [
+    "Este modelo usa UMA volatilidade unica para todos os strikes (vol plana). O mercado real "
+    "tem 'skew': puts e calls fora do dinheiro negociam com vols diferentes.",
+    "Consequencia pratica: collars que aparecem aqui 'entrando com credito' podem virar custo na "
+    "tela real, se a put estiver com vol maior que a call. No cafe costuma ocorrer o contrario "
+    "(call com vol maior, por risco de quebra de safra), o que favoreceria o credito - mas isso "
+    "precisa ser CONFERIDO, nao presumido.",
+    "Antes de prometer qualquer estrutura ao cliente: peca a vol de cada strike a mesa da XP e "
+    "substitua a celula D7 por vencimento/strike, ou refaca a conta com os premios de tela.",
+    "Os strikes calculados aqui sao arredondados de 5 em 5 dolares e podem nao existir listados. "
+    "Confirme quais strikes tem oferta firme.",
+]
+for t in ressalvas:
+    escreve(bk, f"B{rr}", "-", PRETO, alin="center")
+    escreve(bk, f"C{rr}", t, ITAL, alin="left")
+    bk.merge_cells(f"C{rr}:M{rr}")
+    bk.row_dimensions[rr].height = 34
+    rr += 1
+
+
 # ---------------------------------------------------------------- salvar
 import os
 destino = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

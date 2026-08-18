@@ -234,6 +234,83 @@ checa(alta_suportada / ICF_LONGO > 0.08,
       "colchao aguenta pelo menos 8% de alta (cafe tem vol de ~38% a.a.)",
       f"{alta_suportada/ICF_LONGO:.2%}")
 
+# ---- identidades da aba "Breakeven opcoes"
+print("\n4.3 Breakeven e piso/teto (aba Breakeven opcoes)")
+
+
+def margem_em(icf):
+    return icf * CAMBIO_VENC + BASIS_VENDA - custo_base
+
+
+# preco de equilibrio do negocio: onde a margem comercial zera
+be_negocio = (custo_base - BASIS_VENDA) / CAMBIO_VENC
+checa(abs(margem_em(be_negocio)) < 1e-9,
+      "preco de equilibrio do negocio zera a margem comercial",
+      f"ICF US$ {be_negocio:.2f} = queda de {be_negocio/ICF_LONGO-1:.1%}")
+
+# put: piso de margem e breakeven, conferidos avaliando o payoff longe do strike
+K = 350.0
+_, p350 = black76(ICF_LONGO, K, VOL_IMP, PRAZO_ANOS, JUROS)
+piso_put = margem_em(K) - p350 * CAMBIO_VENC
+for icf_teste in (200.0, 250.0, 300.0, 349.0):
+    payoff = margem_em(icf_teste) + max(K - icf_teste, 0) * CAMBIO_VENC - p350 * CAMBIO_VENC
+    if abs(payoff - piso_put) > 1e-9:
+        falhas.append(f"piso da put nao e plano abaixo do strike (ICF {icf_teste})")
+checa(not any("piso da put" in f for f in falhas),
+      "piso da put e plano abaixo do strike (a protecao realmente segura)",
+      f"R$ {piso_put:.2f}/saca")
+
+be_put = K - p350
+# no breakeven, a POSICAO DE OPCAO zera: o que a put paga cobre exatamente o premio
+resultado_opcao = max(K - be_put, 0) * CAMBIO_VENC - p350 * CAMBIO_VENC
+checa(abs(resultado_opcao) < 1e-9,
+      "no breakeven a posicao de opcao zera (o exercicio cobre exatamente o premio)",
+      f"breakeven US$ {be_put:.2f} = {be_put/ICF_LONGO-1:.1%}")
+# e abaixo do breakeven a opcao passa a ser lucro liquido
+abaixo = max(K - (be_put - 10), 0) * CAMBIO_VENC - p350 * CAMBIO_VENC
+checa(abaixo > 0, "abaixo do breakeven a put passa a dar resultado liquido positivo",
+      f"a US$ {be_put-10:.2f} a opcao rende R$ {abaixo:.2f}/saca")
+
+# collar: piso no strike da put, teto no strike da call
+for Kp, Kc in ((350.0, 385.0), (350.0, 405.0), (360.0, 395.0)):
+    _, pp = black76(ICF_LONGO, Kp, VOL_IMP, PRAZO_ANOS, JUROS)
+    pc, _ = black76(ICF_LONGO, Kc, VOL_IMP, PRAZO_ANOS, JUROS)
+    custo = (pp - pc) * CAMBIO_VENC
+    piso = margem_em(Kp) - custo
+    teto = margem_em(Kc) - custo
+
+    def payoff_collar(icf):
+        return (margem_em(icf) + (max(Kp - icf, 0) - max(icf - Kc, 0)) * CAMBIO_VENC - custo)
+
+    ok_piso = all(abs(payoff_collar(x) - piso) < 1e-9 for x in (200.0, 300.0, Kp - 1))
+    ok_teto = all(abs(payoff_collar(x) - teto) < 1e-9 for x in (Kc + 1, 500.0, 600.0))
+    ok_ordem = piso < teto
+    if not (ok_piso and ok_teto and ok_ordem):
+        falhas.append(f"piso/teto do collar {Kp:.0f}/{Kc:.0f} inconsistente")
+    print(f"       collar {Kp:.0f}/{Kc:.0f}: custo R$ {custo:>7.2f}/saca | "
+          f"piso R$ {piso:>7.2f} | teto R$ {teto:>7.2f}")
+
+checa(not any("piso/teto do collar" in f for f in falhas),
+      "piso e teto dos collars sao planos nas pontas e ordenados")
+
+# o collar 350/385 aparece com credito - achado dependente da hipotese de vol plana
+_, pp350 = black76(ICF_LONGO, 350.0, VOL_IMP, PRAZO_ANOS, JUROS)
+pc385, _ = black76(ICF_LONGO, 385.0, VOL_IMP, PRAZO_ANOS, JUROS)
+custo_385 = (pp350 - pc385) * CAMBIO_VENC
+piso_385 = margem_em(350.0) - custo_385
+checa(custo_385 < 0, "collar 350/385 entra com credito sob vol plana (CONFERIR skew na tela)",
+      f"R$ {custo_385:.2f}/saca")
+checa(piso_385 > 0, "collar 350/385 garante margem positiva",
+      f"R$ {piso_385:.2f}/saca")
+print("       ATENCAO: o credito acima depende de vol UNICA para todos os strikes. "
+      "Com skew real o sinal pode virar - conferir premios de tela.")
+
+# a escolha do vencimento pesa mais que a escolha da estrutura
+margem_curto = ICF_CURTO * CAMBIO_VENC + BASIS_VENDA - (PRECO_COMPRA + CARREGO_MES * 1)
+checa(margem_curto > margem_comercial * 2,
+      "vencimento curto rende mais que o dobro da margem do vencimento longo",
+      f"R$ {margem_curto:.2f} vs R$ {margem_comercial:.2f}/saca")
+
 # a curva invertida penaliza o futuro longo - confere o veredito do estudo
 carrego_mercado = (ICF_LONGO - ICF_CURTO) * CAMBIO_HOJE
 print(f"\n       carrego pago pelo mercado (curto->longo) = R$ {carrego_mercado:.2f}/saca")
