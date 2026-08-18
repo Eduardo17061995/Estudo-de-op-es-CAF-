@@ -6,9 +6,11 @@ arábica **ICF** e opções sobre ICF na **B3**.
 
 ## Onde começar
 
-1. **[`ESTUDO_HEDGE_CAFE.md`](ESTUDO_HEDGE_CAFE.md)** — o estudo. Leia primeiro.
+1. **[`ESTUDO_HEDGE_CAFE.md`](ESTUDO_HEDGE_CAFE.md)** — o estudo técnico. Leia primeiro.
 2. **`saida/Estudo_Hedge_Cafe_ICF.xlsx`** — a calculadora. Preencha só as células
    azuis com fundo amarelo, na aba `Parametros`.
+3. **`saida/Material_Cliente_Protecao_Cafe.pdf`** — o material para entregar ao
+   cliente, em linguagem simples e sem jargão. Não repete as análises internas.
 
 ## Os dois achados que mudam a recomendação padrão
 
@@ -43,6 +45,8 @@ saida/Estudo_Hedge_Cafe_ICF.xlsx  calculadora, 8 abas
 modelo/gerar_calculadora_cafe.py  gera a planilha do zero
 modelo/validar_modelo.py          valida a matemática do modelo
 modelo/analise_breakeven.py       qual strike vale a pena e a partir de quanto paga
+modelo/gerar_material_cliente.py  gera o PDF explicativo para o cliente
+saida/Material_Cliente_Protecao_Cafe.pdf   material do cliente (6 páginas)
 ```
 
 Abas da planilha: `Leia-me` · `Parametros` · `Dimensionamento` · `Cenarios` · `Opcoes` ·
@@ -55,6 +59,7 @@ pip install openpyxl
 python modelo/gerar_calculadora_cafe.py   # regera a planilha
 python modelo/validar_modelo.py           # valida (todas as verificações passam)
 python modelo/analise_breakeven.py        # tabelas de breakeven de puts e collars
+python modelo/gerar_material_cliente.py   # gera o PDF do cliente (usa Chromium headless)
 ```
 
 ## Avisos
