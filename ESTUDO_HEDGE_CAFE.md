@@ -493,7 +493,7 @@ Sugestão de política mínima, para assinar antes de operar:
 
 | Arquivo | O que é |
 |---|---|
-| `saida/Estudo_Hedge_Cafe_ICF.xlsx` | Calculadora com 7 abas. Preencha só as células azuis/amarelas. |
+| `saida/Estudo_Hedge_Cafe_ICF.xlsx` | Calculadora com 8 abas. Preencha só as células azuis/amarelas. |
 | `modelo/gerar_calculadora_cafe.py` | Script que gera a planilha. Rode de novo para recriar do zero. |
 | `modelo/validar_modelo.py` | Validação independente da matemática do modelo. |
 | `modelo/analise_breakeven.py` | Análise de breakeven: qual strike vale a pena e a partir de quanto paga. |

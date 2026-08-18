@@ -39,7 +39,7 @@ mais que a escolha da estrutura.
 
 ```
 ESTUDO_HEDGE_CAFE.md              o estudo completo
-saida/Estudo_Hedge_Cafe_ICF.xlsx  calculadora, 7 abas
+saida/Estudo_Hedge_Cafe_ICF.xlsx  calculadora, 8 abas
 modelo/gerar_calculadora_cafe.py  gera a planilha do zero
 modelo/validar_modelo.py          valida a matemática do modelo
 modelo/analise_breakeven.py       qual strike vale a pena e a partir de quanto paga
